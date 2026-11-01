@@ -17,8 +17,9 @@
   <nav>
     <a href="#features">Features</a>
     <a href="#privacy">Privacy</a>
-    <a href="#beta">Beta</a>
-    <a class="gh" href="https://github.com/Monnygraphics/video-studio">GitHub</a>
+    <a href="#beta">Try beta</a>
+    <a href="#feedback">Feedback</a>
+    <a class="gh" href="#beta">Join</a>
   </nav>
 </header>
 
@@ -29,10 +30,10 @@
       <h1>Edit talking-head reels in your browser.</h1>
       <p class="lead">Cut the dead air, add captions that look designed, and export a vertical reel. Free, and your video never leaves your device.</p>
       <div class="cta">
-        <a class="btn primary" href="#beta">Get a beta invite</a>
-        <a class="btn" href="https://github.com/Monnygraphics/video-studio">See the code</a>
+        <a class="btn primary" href="#beta">Try beta</a>
+        <a class="btn" href="#feedback">Give feedback</a>
       </div>
-      <p class="note">Works best in Chrome or Edge. The editor is being built in the open; the first 50 testers get in by invite code.</p>
+      <p class="note">Works best in Chrome or Edge. The first 50 testers get access, and you help decide what gets built next.</p>
     </div>
     <div class="phone" role="img" aria-label="Illustration of a vertical reel with a caption">
       <div class="screen">
@@ -69,10 +70,63 @@
     </ul>
   </section>
 
-  <section id="beta" class="beta">
-    <h2>Beta access</h2>
-    <p>The first 50 testers get an invite code. Open an issue titled <b>Invite request</b> on GitHub and say what you make. Codes go out in order.</p>
-    <a class="btn primary" href="https://github.com/Monnygraphics/video-studio/issues/new?title=Invite%20request">Request an invite</a>
+  <section id="beta" class="formsec">
+    <h2>Try the beta</h2>
+    <p class="sub">Register to test Video Studio. The first 50 testers get access, and we email you your access details as each part of the editor opens. In return we ask for honest feedback on the features below.</p>
+    <form class="form" data-kind="beta" novalidate>
+      <input type="hidden" name="_subject" value="Video Studio: beta registration">
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label>Your name<input name="name" required autocomplete="name"></label>
+      <label>Email (your access is sent here)<input name="email" type="email" required autocomplete="email"></label>
+      <label>What do you make?
+        <select name="role" required>
+          <option value="">Choose one</option>
+          <option>Coach or speaker</option><option>Business owner</option><option>Content creator</option>
+          <option>Agency or freelancer</option><option>Student</option><option>Other</option>
+        </select>
+      </label>
+      <label>Where do you post videos?<input name="platforms" placeholder="Instagram, TikTok, LinkedIn, YouTube..."></label>
+      <label>Your computer and browser<input name="device" placeholder="Windows, Chrome"></label>
+      <fieldset>
+        <legend>Features you want to test</legend>
+        <label class="chk"><input type="checkbox" name="test" value="Auto-edit (cuts and retakes)"> Auto-edit (cuts and retakes)</label>
+        <label class="chk"><input type="checkbox" name="test" value="Captions"> Captions</label>
+        <label class="chk"><input type="checkbox" name="test" value="Punch-ins and pages"> Punch-ins and pages</label>
+        <label class="chk"><input type="checkbox" name="test" value="Shorts finder"> Shorts finder</label>
+        <label class="chk"><input type="checkbox" name="test" value="Export"> Export</label>
+      </fieldset>
+      <label>What would make this useful for you?<textarea name="wish" rows="3"></textarea></label>
+      <button class="btn primary" type="submit">Register for the beta</button>
+      <p class="status" role="status" aria-live="polite"></p>
+    </form>
+    <p class="note">Your details go only to the person running the beta, and are used to contact you about it. No video is ever uploaded.</p>
+  </section>
+
+  <section id="feedback" class="formsec">
+    <h2>Give feedback about the editor</h2>
+    <p class="sub">Tried it, or have an idea? Tell us what works, what is missing and what got in your way. Every note helps find the gaps.</p>
+    <form class="form" data-kind="feedback" novalidate>
+      <input type="hidden" name="_subject" value="Video Studio: feedback">
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label>Which feature is this about?
+        <select name="feature" required>
+          <option value="">Choose one</option>
+          <option>Auto-edit</option><option>Captions</option><option>Punch-ins and pages</option>
+          <option>Shorts finder</option><option>Export</option><option>Speed or performance</option>
+          <option>Design or ease of use</option><option>Something missing</option><option>Other</option>
+        </select>
+      </label>
+      <label>How did it go?
+        <select name="rating" required>
+          <option value="">Choose one</option>
+          <option>Great</option><option>Good</option><option>Okay</option><option>Poor</option><option>Broken</option>
+        </select>
+      </label>
+      <label>What happened, or what is missing?<textarea name="message" rows="4" required></textarea></label>
+      <label>Your email (optional, if you want a reply)<input name="email" type="email" autocomplete="email"></label>
+      <button class="btn primary" type="submit">Send feedback</button>
+      <p class="status" role="status" aria-live="polite"></p>
+    </form>
   </section>
 </main>
 
@@ -80,5 +134,6 @@
   <span>Video Studio &middot; MIT licence</span>
   <span>Chrome and Edge recommended. Safari and Firefox are partial.</span>
 </footer>
+<script src="forms.js"></script>
 </body>
 </html>
