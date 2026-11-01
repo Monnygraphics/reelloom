@@ -4,7 +4,7 @@ Edit talking-head reels in your browser. Free, and your videos stay on your devi
 
 **Status: early beta.** This repo currently holds the landing page. The browser editor is being built in the open, in this order: manual editor, export, on-device AI, then optional AI helpers.
 
-- Site: https://videostudio.vercel.app
+- Site: https://videostudio-rust.vercel.app
 - Browsers: Chrome and Edge (WebCodecs, WebGPU). Safari and Firefox are partial.
 - Beta: invite codes for the first 50 testers. To ask for one, open an issue titled "Invite request".
 
