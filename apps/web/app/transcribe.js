@@ -58,10 +58,16 @@ export async function transcribe(file, say) {
   const audio = await audioTo16k(file);
   if (!asr) {
     say("Downloading the speech model (one time, about 80 MB)...");
-    let last = 0;
+    const files = {};                                       // per-file byte counts, so the percentage covers the whole model
     asr = await pipeline("automatic-speech-recognition", MODEL, {
       dtype: "q8", device: "wasm",
-      progress_callback: (p) => { if (p.status === "progress" && p.progress - last > 4) { last = p.progress; say(p.progress >= 99 ? "Starting the speech model (the first start can take a minute)..." : "Downloading the speech model... " + Math.round(p.progress) + "%"); } },
+      progress_callback: (p) => {
+        if (p.status === "progress" && p.total) {
+          files[p.file] = { l: p.loaded, t: p.total };
+          let l = 0, t = 0; for (const f of Object.values(files)) { l += f.l; t += f.t; }
+          say("Downloading the speech model (one time)... " + Math.round((l / t) * 100) + "% of " + Math.round(t / 1048576) + " MB");
+        } else if (p.status === "ready") say("Starting the speech model...");
+      },
     });
   }
   say("Listening... this takes about as long as the clip is. Keep this tab open.");
