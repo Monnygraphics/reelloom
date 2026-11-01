@@ -2,6 +2,7 @@ import { Input, BlobSource, ALL_FORMATS, CanvasSink, AudioBufferSink, Output, Mp
 
 const $ = (id) => document.getElementById(id);
 const S = {
+  words: null,        // Whisper words, kept so clean-up can reuse them
   file: null, url: "", dur: 0, vw: 0, vh: 0,
   cuts: [],            // [{a,b}] removed ranges in source seconds, sorted and merged
   caps: [],            // [{s,e,t}] captions in source seconds
@@ -122,7 +123,7 @@ function refresh() { mergeCuts(); S.caps.sort((a, b) => a.s - b.s); drawTimeline
 async function loadFile(file) {
   if (!file || !file.type.startsWith("video/")) { alert("Please choose a video file."); return; }
   if (S.url) URL.revokeObjectURL(S.url);
-  S.file = file; S.url = URL.createObjectURL(file); S.cuts = []; S.caps = []; S.mark = null;
+  S.file = file; S.url = URL.createObjectURL(file); S.cuts = []; S.caps = []; S.mark = null; S.words = null; $("cleaninfo").textContent = "";
   video.src = S.url;
   await new Promise((res, rej) => { video.onloadedmetadata = res; video.onerror = () => rej(new Error("This video can't be played by your browser.")); }).catch((e) => { alert(e.message); throw e; });
   S.dur = video.duration; S.vw = video.videoWidth; S.vh = video.videoHeight;
@@ -171,32 +172,60 @@ $("cutnow").addEventListener("click", () => {
 });
 $("clearcuts").addEventListener("click", () => { S.cuts = []; refresh(); });
 
-// Silence detection: decode the audio once, measure loudness in 50 ms windows, cut quiet stretches over 0.6 s.
+// Loudness of the whole clip in 50 ms steps, used to find silences and spoken sounds between words.
+async function analyseLevels() {
+  const input = new Input({ source: new BlobSource(S.file), formats: ALL_FORMATS });
+  const track = await input.getPrimaryAudioTrack();
+  if (!track) return [];
+  const sink = new AudioBufferSink(track), win = 0.05, levels = [];
+  for await (const { buffer, timestamp } of sink.buffers()) {
+    const d = buffer.getChannelData(0), n = Math.max(1, Math.floor(buffer.sampleRate * win));
+    for (let i = 0; i + n <= d.length; i += n) {
+      let sum = 0; for (let j = i; j < i + n; j++) sum += d[j] * d[j];
+      levels.push({ t: timestamp + i / buffer.sampleRate, db: 10 * Math.log10(sum / n + 1e-12) });
+    }
+  }
+  return levels;
+}
 $("autocut").addEventListener("click", async () => {
   const btn = $("autocut"); btn.disabled = true; btn.textContent = "Listening...";
   try {
-    const input = new Input({ source: new BlobSource(S.file), formats: ALL_FORMATS });
-    const track = await input.getPrimaryAudioTrack();
-    if (!track) { $("cutinfo").textContent = "This video has no audio to analyse."; return; }
-    const sink = new AudioBufferSink(track), win = 0.05, levels = [];
-    for await (const { buffer, timestamp } of sink.buffers()) {
-      const d = buffer.getChannelData(0), n = Math.max(1, Math.floor(buffer.sampleRate * win));
-      for (let i = 0; i + n <= d.length; i += n) {
-        let sum = 0; for (let j = i; j < i + n; j++) sum += d[j] * d[j];
-        levels.push({ t: timestamp + i / buffer.sampleRate, db: 10 * Math.log10(sum / n + 1e-12) });
-      }
-    }
-    const sorted = levels.map((l) => l.db).sort((a, b) => a - b);
-    const loud = sorted[Math.floor(sorted.length * 0.9)] ?? -20;
-    const thr = Math.max(-55, loud - 22);                           // quiet = 22 dB below the loud speech
-    let start = null, added = 0; const keepPad = 0.15, minGap = 0.6;
-    const flush = (endT) => { if (start !== null && endT - start >= minGap) { S.cuts.push({ a: start + keepPad, b: endT - keepPad }); added++; } start = null; };
-    for (const l of levels) { if (l.db < thr) { if (start === null) start = l.t; } else flush(l.t); }
-    flush(levels.length ? levels[levels.length - 1].t + win : 0);
-    refresh();
-    $("cutinfo").textContent = added ? `Cut ${added} silent gap${added > 1 ? "s" : ""}. Reel length ${fmt(keptDuration())} (was ${fmt(S.dur)}). Click a red block to put one back.` : "No long silences found.";
+    const { planCleanup } = await import("./clean.js");
+    const levels = await analyseLevels();
+    if (!levels.length) { $("cutinfo").textContent = "This video has no audio to analyse."; return; }
+    const sorted = levels.map((l) => l.db).sort((x, y) => x - y), loud = sorted[Math.floor(sorted.length * 0.9)];
+    const thr = Math.max(-55, loud - 22);
+    const fake = [];                                     // treat every loud stretch as one "word" so only the quiet gaps are cut
+    let s = null;
+    for (const l of levels) { if (l.db >= thr) { if (s === null) s = l.t; } else if (s !== null) { fake.push({ t: "x" + fake.length, s, e: l.t }); s = null; } }
+    if (s !== null) fake.push({ t: "x" + fake.length, s, e: S.dur });
+    const r = planCleanup(fake, [], S.dur, { fillers: false, repeats: false, retakes: false, silences: true });
+    S.cuts = S.cuts.concat(r.cuts.map(({ a, b }) => ({ a, b }))); refresh();
+    $("cutinfo").textContent = r.cuts.length ? `Cut ${r.cuts.length} silent gap${r.cuts.length > 1 ? "s" : ""}. Reel length ${fmt(keptDuration())} (was ${fmt(S.dur)}). Click a red block to put one back.` : "No long silences found.";
   } catch (e) { $("cutinfo").textContent = "Could not analyse the audio: " + e.message; }
   finally { btn.disabled = false; btn.textContent = "Auto-cut silences"; }
+});
+
+// One click: transcribe (once), then cut silences, fillers, repeats and retakes, and rebuild the captions from what is left.
+$("cleanup").addEventListener("click", async () => {
+  const btn = $("cleanup"), st = $("cleaninfo"); btn.disabled = true;
+  try {
+    const { planCleanup, group } = await import("./clean.js");
+    if (!S.words) {
+      const { transcribe } = await import("./transcribe.js");
+      const r = await transcribe(S.file, (m) => { st.textContent = m; });
+      S.words = r.words;
+    }
+    st.textContent = "Finding what to cut...";
+    const levels = await analyseLevels();
+    const res = planCleanup(S.words, levels, S.dur, { silences: $("o-sil").checked, fillers: $("o-fill").checked, repeats: $("o-rep").checked, retakes: $("o-ret").checked, extraFillers: $("o-extra").checked });
+    S.cuts = res.cuts.map(({ a, b }) => ({ a, b }));
+    S.caps = group(res.words.filter((w) => !w.why).map((w) => ({ t: w.t, s: w.s, e: w.e })));
+    refresh();
+    const p = [["filler", res.stats.fillers], ["repeat", res.stats.repeats], ["retake", res.stats.retakes], ["silence", res.stats.silences]].filter((x) => x[1]).map((x) => x[1] + " " + x[0] + (x[1] > 1 ? "s" : ""));
+    st.textContent = p.length ? `Removed ${p.join(", ")}. Saved ${res.stats.seconds} s: ${fmt(S.dur)} became ${fmt(keptDuration())}. Click a red block to put one back.` : "Nothing to clean up. This clip is already tight.";
+  } catch (e) { st.textContent = "Clean-up failed: " + e.message; }
+  finally { btn.disabled = false; }
 });
 
 // ---------- captions ----------
@@ -222,8 +251,8 @@ $("autocap").addEventListener("click", async () => {
   const btn = $("autocap"), st = $("capstatus"); btn.disabled = true;
   try {
     const { transcribe } = await import("./transcribe.js");
-    const caps = await transcribe(S.file, (msg) => { st.textContent = msg; });
-    S.caps = caps; refresh(); st.textContent = `Added ${caps.length} captions. Check and fix any words below.`;
+    const r = await transcribe(S.file, (msg) => { st.textContent = msg; });
+    S.words = r.words; S.caps = r.caps; refresh(); st.textContent = `Added ${r.caps.length} captions. Check and fix any words below.`;
   } catch (e) { st.textContent = "Auto captions failed: " + e.message; }
   finally { btn.disabled = false; }
 });
@@ -255,7 +284,7 @@ $("export").addEventListener("click", async () => {
     let asrc = null;
     if (asink) { asrc = new AudioBufferSource({ codec: "aac", bitrate: 128000 }); output.addAudioTrack(asrc); }
     await output.start();
-    let offset = 0;
+    let offset = 0; const audioParts = [];
     for (const seg of segs) {
       st.textContent = "Rendering video...";
       for await (const wc of sink.canvases(seg.a, seg.b)) {
@@ -264,18 +293,38 @@ $("export").addEventListener("click", async () => {
         bar.firstElementChild.style.width = Math.min(95, ((offset + (wc.timestamp - seg.a)) / total) * 95) + "%";
       }
       if (asink) {
+        // Gather this segment's audio exactly (trimmed to the cut points), then hand it over as one buffer.
+        const chans = [], parts = []; let sr = 48000, nch = 1, total = 0;
         for await (const wb of asink.buffers(seg.a, seg.b)) {
-          const b = wb.buffer, sr = b.sampleRate, from = Math.max(0, Math.round((seg.a - wb.timestamp) * sr)), to = Math.min(b.length, Math.round((seg.b - wb.timestamp) * sr));
+          const b = wb.buffer; sr = b.sampleRate; nch = Math.min(2, b.numberOfChannels);
+          const from = Math.max(0, Math.round((seg.a - wb.timestamp) * sr)), to = Math.min(b.length, Math.round((seg.b - wb.timestamp) * sr));
           if (to - from < 1) continue;
-          let ab = b;
-          if (from > 0 || to < b.length) {
-            ab = new AudioBuffer({ length: to - from, numberOfChannels: b.numberOfChannels, sampleRate: sr });
-            for (let c = 0; c < b.numberOfChannels; c++) ab.copyToChannel(b.getChannelData(c).subarray(from, to), c);
+          parts.push(Array.from({ length: nch }, (_, c) => b.getChannelData(c).slice(from, to))); total += to - from;
+        }
+        if (total) {
+          for (let c = 0; c < nch; c++) { const a = new Float32Array(total); let o = 0; for (const p of parts) { a.set(p[c], o); o += p[c].length; } chans.push(a); }
+          let ab = new AudioBuffer({ length: total, numberOfChannels: nch, sampleRate: sr });
+          chans.forEach((a, c) => ab.copyToChannel(a, c));
+          if (sr !== 48000) {                                    // one rate for everything: AAC encoders only take common rates, and the loudness meter assumes 48 kHz
+            const oc2 = new OfflineAudioContext(nch, Math.ceil((total * 48000) / sr), 48000), srcNode = oc2.createBufferSource();
+            srcNode.buffer = ab; srcNode.connect(oc2.destination); srcNode.start();
+            ab = await oc2.startRendering();
           }
-          await asrc.add(ab);
+          audioParts.push(ab);
         }
       }
       offset += seg.b - seg.a;
+    }
+    if (asrc && audioParts.length) {
+      st.textContent = "Setting the loudness...";
+      if ($("loud").checked) {
+        const { normalize } = await import("./loudness.js");
+        const nch = audioParts[0].numberOfChannels, lens = audioParts.map((p) => p.length), total = lens.reduce((x, y) => x + y, 0);
+        const chans = Array.from({ length: nch }, (_, c) => { const o = new Float32Array(total); let k = 0; for (const p of audioParts) { o.set(p.getChannelData(c), k); k += p.length; } return o; });
+        S.lastNorm = normalize(chans, -14);
+        let k = 0; audioParts.forEach((p, i) => { for (let c = 0; c < nch; c++) p.copyToChannel(chans[c].subarray(k, k + lens[i]), c); k += lens[i]; });
+      }
+      for (const p of audioParts) await asrc.add(p);
     }
     st.textContent = "Finishing...";
     vsrc.close(); if (asrc) asrc.close();

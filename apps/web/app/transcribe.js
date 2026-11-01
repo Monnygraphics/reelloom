@@ -1,6 +1,7 @@
 // On-device captions: Whisper runs in this tab through transformers.js. The audio never leaves the device.
 // The model files (about 80 MB) download once from Hugging Face and are cached by the browser.
 import { pipeline, env } from "./vendor/transformers.js";
+import { group } from "./clean.js";
 import { Input, BlobSource, ALL_FORMATS, AudioBufferSink } from "./vendor/mediabunny.min.mjs";
 
 env.allowLocalModels = false;
@@ -35,24 +36,6 @@ async function audioTo16k(file) {
   return out;
 }
 
-// Group word timings into short caption lines: up to 4 words, break on a pause or the end of a sentence.
-function group(words) {
-  const caps = []; let cur = [];
-  const flush = () => { if (cur.length) { caps.push({ s: cur[0].s, e: cur[cur.length - 1].e, t: cur.map((w) => w.t).join(" ") }); cur = []; } };
-  for (const w of words) {
-    const prev = cur[cur.length - 1];
-    if (prev && w.s - prev.e > 0.6) flush();
-    cur.push(w);
-    if (cur.length >= 4 || /[.!?]$/.test(w.t)) flush();
-  }
-  flush();
-  for (let i = 0; i < caps.length; i++) {                  // hold each caption until the next one starts, up to 0.4 s
-    const next = caps[i + 1];
-    caps[i].e = next ? Math.min(next.s, caps[i].e + 0.4) : caps[i].e + 0.4;
-  }
-  return caps;
-}
-
 export async function transcribe(file, say) {
   say("Reading the audio...");
   const audio = await audioTo16k(file);
@@ -73,6 +56,6 @@ export async function transcribe(file, say) {
   say("Listening... this takes about as long as the clip is. Keep this tab open.");
   const out = await asr(audio, { return_timestamps: "word", chunk_length_s: 30, stride_length_s: 5, task: "transcribe" });
   const words = (out.chunks || []).map((c) => ({ t: c.text.trim(), s: c.timestamp[0], e: c.timestamp[1] ?? c.timestamp[0] + 0.3 })).filter((w) => w.t);
-  if (!words.length) throw new Error("No speech found.");
-  return group(words);
+  if (words.length < 2) throw new Error("No clear speech found in this video.");
+  return { words, caps: group(words) };
 }

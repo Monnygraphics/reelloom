@@ -42,7 +42,18 @@
 
   <aside class="panel">
     <details open>
-      <summary>1. Cut</summary>
+      <summary>1. Clean up automatically</summary>
+      <label class="chk"><input id="o-sil" type="checkbox" checked> Remove silences</label>
+      <label class="chk"><input id="o-fill" type="checkbox" checked> Remove fillers (um, uh, hmm)</label>
+      <label class="chk"><input id="o-rep" type="checkbox" checked> Remove repeated words and phrases</label>
+      <label class="chk"><input id="o-ret" type="checkbox" checked> Remove retakes (a line said again)</label>
+      <label class="chk"><input id="o-extra" type="checkbox"> Also cut &ldquo;you know&rdquo;, &ldquo;I mean&rdquo;, &ldquo;basically&rdquo;</label>
+      <button id="cleanup" class="btn primary">Clean up my video</button>
+      <p id="cleaninfo" class="small" role="status" aria-live="polite"></p>
+    </details>
+
+    <details open>
+      <summary>2. Cut by hand</summary>
       <div class="row">
         <button id="mark" class="btn">Mark start</button>
         <button id="cutnow" class="btn" disabled>Cut mark to playhead</button>
@@ -55,7 +66,7 @@
     </details>
 
     <details open>
-      <summary>2. Captions</summary>
+      <summary>3. Captions</summary>
       <div class="row">
         <button id="autocap" class="btn">Auto captions (on this device)</button>
       </div>
@@ -71,7 +82,7 @@
     </details>
 
     <details open>
-      <summary>3. Look</summary>
+      <summary>4. Look</summary>
       <label class="fld">Headline (top of the reel)<input id="headline" placeholder="Optional"></label>
       <label class="fld">Caption size <input id="capsize" type="range" min="36" max="80" value="56"></label>
       <label class="fld">Highlight colour <input id="hi" type="color" value="#F2A93A"></label>
@@ -79,10 +90,11 @@
     </details>
 
     <details open>
-      <summary>4. Export</summary>
+      <summary>5. Export</summary>
       <label class="fld">Size
         <select id="size"><option value="1080">1080 x 1920 (best)</option><option value="720">720 x 1280 (faster)</option></select>
       </label>
+      <label class="chk"><input id="loud" type="checkbox" checked> Even out the volume (-14 LUFS, like Instagram and TikTok)</label>
       <button id="export" class="btn primary">Export MP4</button>
       <div id="prog" class="prog" hidden><i></i></div>
       <p id="expstatus" class="small" role="status" aria-live="polite"></p>
