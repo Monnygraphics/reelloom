@@ -2,3 +2,5 @@ node_modules/
 .vercel/
 .made-by-make-public
 *.log
+# Fetched separately: GitHub push protection falsely flags this library (see README)
+apps/web/app/vendor/transformers.js

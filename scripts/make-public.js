@@ -14,9 +14,10 @@ const WHITELIST = [
   ["public/README.md", "README.md"],
   ["public/vercel.json", "vercel.json"],
   ["public/gitignore", ".gitignore"],
+  ["public/vercelignore", ".vercelignore"],
   ["scripts/make-public.js", "scripts/make-public.js"],
 ];
-const ALLOWED_EXT = new Set([".html", ".css", ".js", ".json", ".md", ".txt", ".svg", ".png", ".ico", ".webmanifest", ""]);
+const ALLOWED_EXT = new Set([".html", ".css", ".js", ".json", ".md", ".txt", ".svg", ".png", ".ico", ".webmanifest", "", ".mjs", ".wasm"]);
 
 // Strings that must never appear in the public repo (this script is exempt from its own pattern list).
 const FORBIDDEN = [
@@ -41,7 +42,7 @@ if (!out.toLowerCase().includes("public")) { console.error("Refusing: output dir
 if (fs.existsSync(out)) {
   // Only wipe a folder this script made before, and keep its .git.
   if (!fs.existsSync(path.join(out, ".made-by-make-public"))) { console.error("Refusing: " + out + " exists and was not made by this script."); process.exit(1); }
-  for (const f of fs.readdirSync(out)) if (f !== ".git") fs.rmSync(path.join(out, f), { recursive: true, force: true });
+  for (const f of fs.readdirSync(out)) if (f !== ".git" && f !== ".vercel") fs.rmSync(path.join(out, f), { recursive: true, force: true });
 }
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, ".made-by-make-public"), "");
@@ -63,7 +64,7 @@ const leaks = [];
 for (const [rel, abs] of copied) {
   const ext = path.extname(rel).toLowerCase();
   if (!ALLOWED_EXT.has(ext)) { leaks.push(rel + ": file type " + ext + " not allowed"); continue; }
-  if (ext === ".png" || ext === ".ico" || rel === "scripts/make-public.js") continue;
+  if (ext === ".png" || ext === ".ico" || ext === ".wasm" || rel.startsWith("apps/web/app/vendor/") || rel === "scripts/make-public.js") continue;
   const text = fs.readFileSync(abs, "utf8");
   for (const [re, why] of FORBIDDEN) {
     const m = text.match(re);

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Studio Editor</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="../"><span class="mark" aria-hidden="true"></span>Video Studio</a>
+  <span class="beta-tag">Beta</span>
+  <span class="spacer"></span>
+  <a class="link" href="../#feedback">Give feedback</a>
+</header>
+
+<div id="support" class="banner" hidden>This browser can't export video yet. Please use a recent Chrome or Edge on a computer.</div>
+
+<main id="start" class="start">
+  <div id="drop" class="drop" tabindex="0">
+    <h1>Edit a talking-head reel</h1>
+    <p>Drop a video here, or choose a file. It stays on your device.</p>
+    <label class="btn primary">Choose a video<input id="file" type="file" accept="video/*" hidden></label>
+    <p class="hint">MP4 or MOV from a phone works best. Up to a few minutes at 1080p.</p>
+  </div>
+</main>
+
+<main id="editor" class="editor" hidden>
+  <section class="stage">
+    <div class="frame"><canvas id="cv" width="540" height="960"></canvas></div>
+    <div class="transport">
+      <button id="play" class="btn">Play</button>
+      <span id="clock" class="clock">0:00 / 0:00</span>
+    </div>
+    <div id="timeline" class="timeline" aria-label="Timeline: click to move the playhead">
+      <div id="tl-cuts"></div><div id="tl-caps"></div><div id="tl-head" class="head"></div>
+    </div>
+    <p class="legend"><i class="k cut"></i> cut out &nbsp; <i class="k cap"></i> caption &nbsp; Click a red block to put it back.</p>
+  </section>
+
+  <aside class="panel">
+    <details open>
+      <summary>1. Cut</summary>
+      <div class="row">
+        <button id="mark" class="btn">Mark start</button>
+        <button id="cutnow" class="btn" disabled>Cut mark to playhead</button>
+      </div>
+      <div class="row">
+        <button id="autocut" class="btn">Auto-cut silences</button>
+        <button id="clearcuts" class="btn">Clear cuts</button>
+      </div>
+      <p id="cutinfo" class="small"></p>
+    </details>
+
+    <details open>
+      <summary>2. Captions</summary>
+      <div class="row">
+        <button id="autocap" class="btn">Auto captions (on this device)</button>
+      </div>
+      <p id="capstatus" class="small"></p>
+      <div class="row">
+        <button id="addcap" class="btn">Add at playhead</button>
+      </div>
+      <div id="caplist" class="caplist"></div>
+      <label class="fld">Paste a script to spread captions over the clip
+        <textarea id="script" rows="3" placeholder="Paste what you say. We split it into short lines."></textarea>
+      </label>
+      <button id="usescript" class="btn">Split script into captions</button>
+    </details>
+
+    <details open>
+      <summary>3. Look</summary>
+      <label class="fld">Headline (top of the reel)<input id="headline" placeholder="Optional"></label>
+      <label class="fld">Caption size <input id="capsize" type="range" min="36" max="80" value="56"></label>
+      <label class="fld">Highlight colour <input id="hi" type="color" value="#F2A93A"></label>
+      <label class="chk"><input id="punch" type="checkbox" checked> Punch-in zoom on every other caption</label>
+    </details>
+
+    <details open>
+      <summary>4. Export</summary>
+      <label class="fld">Size
+        <select id="size"><option value="1080">1080 x 1920 (best)</option><option value="720">720 x 1280 (faster)</option></select>
+      </label>
+      <button id="export" class="btn primary">Export MP4</button>
+      <div id="prog" class="prog" hidden><i></i></div>
+      <p id="expstatus" class="small" role="status" aria-live="polite"></p>
+      <a id="dl" class="btn" hidden>Download</a>
+    </details>
+    <p class="small">Nothing is uploaded. Editing and export run in this tab.</p>
+  </aside>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

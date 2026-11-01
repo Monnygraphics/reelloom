@@ -15,3 +15,14 @@ Edit talking-head reels in your browser. Free, and your videos stay on your devi
 
 ## Licence
 MIT. See LICENSE.
+
+## Third-party code (apps/web/app/vendor)
+- mediabunny (MPL-2.0): video decode, encode and MP4 muxing in the browser.
+- transformers.js (Apache-2.0) and onnxruntime-web (MIT): run the Whisper speech model on the device. The model files download from Hugging Face on first use.
+
+### One file is not in git
+`apps/web/app/vendor/transformers.js` (the unmodified transformers.js 4.3.2 build) is left out of the repo because GitHub push protection falsely flags a string inside it as a secret. To run the editor from a clone, fetch it once:
+
+```
+npm pack @huggingface/transformers@4.3.2 && tar -xzf huggingface-transformers-4.3.2.tgz package/dist/transformers.js && mv package/dist/transformers.js apps/web/app/vendor/
+```

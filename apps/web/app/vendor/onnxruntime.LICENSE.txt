@@ -1,0 +1,1 @@
+onnxruntime-web is MIT licensed (c) Microsoft Corporation. https://github.com/microsoft/onnxruntime
