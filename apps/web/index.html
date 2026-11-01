@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Studio</title>
+<meta name="description" content="Edit talking-head reels in your browser. Free, and your videos never leave your device.">
+<meta name="theme-color" content="#0b0b0d">
+<meta property="og:title" content="Video Studio">
+<meta property="og:description" content="Edit talking-head reels in your browser. Free, and your videos never leave your device.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><span class="mark" aria-hidden="true"></span>Video Studio</a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#beta">Beta</a>
+    <a class="gh" href="https://github.com/Monnygraphics/video-studio">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="copy">
+      <p class="eyebrow">Early beta</p>
+      <h1>Edit talking-head reels in your browser.</h1>
+      <p class="lead">Cut the dead air, add captions that look designed, and export a vertical reel. Free, and your video never leaves your device.</p>
+      <div class="cta">
+        <a class="btn primary" href="#beta">Get a beta invite</a>
+        <a class="btn" href="https://github.com/Monnygraphics/video-studio">See the code</a>
+      </div>
+      <p class="note">Works best in Chrome or Edge. The editor is being built in the open; the first 50 testers get in by invite code.</p>
+    </div>
+    <div class="phone" role="img" aria-label="Illustration of a vertical reel with a caption">
+      <div class="screen">
+        <div class="face"></div>
+        <div class="cap"><span>Cut the dead air,</span> <b>keep the energy</b></div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>What it does</h2>
+    <div class="grid">
+      <article><h3>Auto-edit</h3><p>Finds retakes and long pauses and cuts them, so you start from a tight take.</p></article>
+      <article><h3>Designed captions</h3><p>Word-by-word captions with highlight colours and pill backgrounds, in open-licence fonts.</p></article>
+      <article><h3>Punch-ins and pages</h3><p>Subtle zooms and split explainer pages that follow what you say.</p></article>
+      <article><h3>Shorts finder</h3><p>Point it at a long recording and it suggests the clips worth posting.</p></article>
+      <article><h3>Vertical export</h3><p>9:16 MP4 up to 1080p, encoded by your own graphics hardware.</p></article>
+      <article><h3>Free to use</h3><p>No account and no watermark. MIT licensed.</p></article>
+    </div>
+    <p class="note">These are the goals for the web edition. Parts are still being built, and the beta will say which are ready.</p>
+  </section>
+
+  <section id="privacy" class="split">
+    <div>
+      <h2>Your video stays yours</h2>
+      <p>The editor runs inside your browser. Editing, captions and export all happen on your device, so nothing is uploaded and there is no server holding your footage.</p>
+    </div>
+    <ul>
+      <li>No upload of video or audio</li>
+      <li>No API key in the page</li>
+      <li>AI is optional: on-device first, your own key second</li>
+      <li>Only open-licence fonts and assets</li>
+    </ul>
+  </section>
+
+  <section id="beta" class="beta">
+    <h2>Beta access</h2>
+    <p>The first 50 testers get an invite code. Open an issue titled <b>Invite request</b> on GitHub and say what you make. Codes go out in order.</p>
+    <a class="btn primary" href="https://github.com/Monnygraphics/video-studio/issues/new?title=Invite%20request">Request an invite</a>
+  </section>
+</main>
+
+<footer>
+  <span>Video Studio &middot; MIT licence</span>
+  <span>Chrome and Edge recommended. Safari and Firefox are partial.</span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,4 @@
+node_modules/
+.vercel/
+.made-by-make-public
+*.log
