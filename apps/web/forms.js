@@ -2,7 +2,7 @@
 (function () {
   var ENDPOINT = "https://formspree.io/f/mppqyopa";
   var DONE = {
-    beta: "You are registered. Check your email: we will send your access details as each part of the editor opens.",
+    beta: "You are on the list. The editor is already open to everyone; we will email you when new parts arrive.",
     feedback: "Thank you. Your feedback was sent."
   };
   document.querySelectorAll("form.form").forEach(function (form) {

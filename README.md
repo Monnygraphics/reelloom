@@ -1,16 +1,16 @@
-# Video Studio
+# Reelloom
 
 Edit talking-head reels in your browser. Free, and your videos stay on your device.
 
-**Status: early beta.** This repo currently holds the landing page. The browser editor is being built in the open, in this order: manual editor, export, on-device AI, then optional AI helpers.
+**Status: early beta, open to everyone.** Works today: cut, one-click clean-up of silences, fillers and repeats, on-device captions, loudness normalising and MP4 export. Coming next: a Shorts finder, split explainer pages, transitions and optional AI helpers.
 
-- Site: https://videostudio-rust.vercel.app
+- Site: https://reelloom.vercel.app
 - Browsers: Chrome and Edge (WebCodecs, WebGPU). Safari and Firefox are partial.
-- Beta: the first 50 testers get access. Register and send feedback at https://videostudio-rust.vercel.app
+- Beta: open to everyone, no sign-up. It is early, so tell us what breaks. Site and feedback: https://reelloom.vercel.app
 
 ## Principles
 - Everything runs in the visitor's browser. No upload of video, ever.
-- No API key is shipped in the page. Optional AI uses your own key, or a capped invite-only proxy.
+- No API key is shipped in the page. AI runs on your own device by default. If AI helpers are added later they use your own free key; there is no shared key to run out.
 - Only open-licence fonts and assets are included.
 
 ## Licence
