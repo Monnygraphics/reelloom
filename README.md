@@ -2,11 +2,11 @@
 
 Edit talking-head reels in your browser. Free, and your videos stay on your device.
 
-**Status: early beta, open to everyone.** Works today: a multi-clip timeline (split, trim, move, delete, undo and redo, clip properties), one-click clean-up of silences, fillers, repeats and retakes, on-device captions in 7 styles with word highlight, transitions (fade, slide, crossfade), eased punch-in zoom, split explainer pages with a rounded picture-in-picture, a Shorts finder, one-click Autopilot (rule-based, on your device), projects saved in your browser, an optional AI helper that uses your own free key, loudness normalising and MP4 export.
+**Status: version 1.0.1, free and open source, open to everyone.** Works today: a multi-clip timeline (split, trim, move, delete, undo and redo, clip properties), one-click clean-up of silences, fillers, repeats and retakes, on-device captions in 7 styles with word highlight, transitions (fade, slide, crossfade), eased punch-in zoom, split explainer pages with a rounded picture-in-picture, a Shorts finder, one-click Autopilot (rule-based, on your device), projects saved in your browser, an optional AI helper that uses your own free key, loudness normalising and MP4 export.
 
 - Site: https://reelloom.vercel.app
 - Browsers: Chrome and Edge (WebCodecs, WebGPU). Safari and Firefox are partial.
-- Beta: open to everyone, no sign-up. It is early, so tell us what breaks. Site and feedback: https://reelloom.vercel.app
+- Open to everyone, no sign-up. Site and feedback: https://reelloom.vercel.app
 
 ## Principles
 - Everything runs in the visitor's browser. No upload of video, ever.
