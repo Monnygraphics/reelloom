@@ -17,7 +17,7 @@ const WHITELIST = [
   ["public/vercelignore", ".vercelignore"],
   ["scripts/make-public.js", "scripts/make-public.js"],
 ];
-const ALLOWED_EXT = new Set([".html", ".css", ".js", ".json", ".md", ".txt", ".svg", ".png", ".ico", ".webmanifest", "", ".mjs", ".wasm"]);
+const ALLOWED_EXT = new Set([".html", ".css", ".js", ".json", ".md", ".txt", ".svg", ".png", ".ico", ".webmanifest", "", ".mjs", ".wasm", ".woff2"]);
 
 // Strings that must never appear in the public repo (this script is exempt from its own pattern list).
 const FORBIDDEN = [

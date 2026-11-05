@@ -5,7 +5,7 @@
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },
       { "key": "Referrer-Policy", "value": "no-referrer" },
-      { "key": "Content-Security-Policy", "value": "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; worker-src 'self' blob:; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; base-uri 'none'; connect-src 'self' blob: https://formspree.io https://huggingface.co https://*.huggingface.co https://*.hf.co; form-action https://formspree.io" }
+      { "key": "Content-Security-Policy", "value": "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; worker-src 'self' blob:; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; base-uri 'none'; connect-src 'self' blob: https://formspree.io https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.groq.com https://openrouter.ai https://generativelanguage.googleapis.com; form-action https://formspree.io" }
     ] }
   ]
 }

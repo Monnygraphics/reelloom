@@ -23,7 +23,8 @@
     <h1>Edit a talking-head reel</h1>
     <p>Drop a video here, or choose a file. It stays on your device.</p>
     <label class="btn primary">Choose a video<input id="file" type="file" accept="video/*" hidden></label>
-    <p class="hint">MP4 or MOV from a phone works best. Up to a few minutes at 1080p.</p>
+    <p id="resume" class="resume" hidden><button id="resumeBtn" class="btn">Continue your last project</button> <span id="resumeInfo" class="small"></span></p>
+    <p class="hint">MP4 or MOV from a phone works best. Up to a few minutes at 1080p. Your project is saved in this browser.</p>
   </div>
 </main>
 
@@ -31,79 +32,107 @@
   <section class="stage">
     <div class="frame"><canvas id="cv" width="540" height="960"></canvas></div>
     <div class="transport">
-      <button id="play" class="btn">Play</button>
-      <span id="clock" class="clock">0:00 / 0:00</span>
+      <button id="play" class="btn" title="Space">Play</button>
+      <button id="undo" class="btn sm" title="Ctrl+Z" disabled>Undo</button>
+      <button id="redo" class="btn sm" title="Ctrl+Y" disabled>Redo</button>
+      <span id="clock" class="clock">0:00.0 / 0:00.0</span><span id="save" class="small savestate"></span>
     </div>
-    <div id="timeline" class="timeline" aria-label="Timeline: click to move the playhead">
-      <div id="tl-cuts"></div><div id="tl-caps"></div><div id="tl-head" class="head"></div>
+    <div class="tools">
+      <button id="split" class="btn sm" title="S">Split at playhead</button>
+      <button id="del" class="btn sm" title="Delete">Delete and close the gap</button>
+      <button id="delgap" class="btn sm" title="Shift+Delete">Delete, keep the gap</button>
+      <label class="btn sm">Add a clip<input id="addfile" type="file" accept="video/*" hidden></label>
+      <label class="zoomfld">Zoom <input id="tlzoom" type="range" min="4" max="120" value="24"></label>
     </div>
-    <p class="legend"><i class="k cut"></i> cut out &nbsp; <i class="k cap"></i> caption &nbsp; Click a red block to put it back.</p>
+    <div id="tl" class="tl" aria-label="Timeline">
+      <div id="tlin" class="tlin">
+        <div id="ruler" class="ruler"></div>
+        <div id="tracks"></div>
+        <div id="tlhead" class="head"><i></i></div>
+      </div>
+    </div>
+    <p class="legend">Click a clip to select it. Drag it to move, drag its edges to trim. Click or drag the ruler to move the playhead.</p>
+    <section id="inspector" class="inspector" aria-live="polite"></section>
   </section>
 
   <aside class="panel">
     <details open>
-      <summary>1. Clean up automatically</summary>
+      <summary>Autopilot</summary>
+      <p class="small">One click: cleans up, writes captions, picks a hook, adds pages and punch-ins. You can change everything after. It runs on this device.</p>
+      <button id="autopilot" class="btn primary">Run Autopilot</button>
+      <p id="apinfo" class="small" role="status" aria-live="polite"></p>
+    </details>
+
+    <details>
+      <summary>Clean up</summary>
       <label class="chk"><input id="o-sil" type="checkbox" checked> Remove silences</label>
       <label class="chk"><input id="o-fill" type="checkbox" checked> Remove fillers (um, uh, hmm)</label>
       <label class="chk"><input id="o-rep" type="checkbox" checked> Remove repeated words and phrases</label>
       <label class="chk"><input id="o-ret" type="checkbox" checked> Remove retakes (a line said again)</label>
       <label class="chk"><input id="o-extra" type="checkbox"> Also cut &ldquo;you know&rdquo;, &ldquo;I mean&rdquo;, &ldquo;basically&rdquo;</label>
-      <button id="cleanup" class="btn primary">Clean up my video</button>
+      <div class="row"><button id="cleanup" class="btn primary">Clean up my video</button><button id="autocut" class="btn">Silences only</button></div>
       <p id="cleaninfo" class="small" role="status" aria-live="polite"></p>
     </details>
 
     <details open>
-      <summary>2. Cut by hand</summary>
-      <div class="row">
-        <button id="mark" class="btn">Mark start</button>
-        <button id="cutnow" class="btn" disabled>Cut mark to playhead</button>
-      </div>
-      <div class="row">
-        <button id="autocut" class="btn">Auto-cut silences</button>
-        <button id="clearcuts" class="btn">Clear cuts</button>
-      </div>
-      <p id="cutinfo" class="small"></p>
-    </details>
-
-    <details open>
-      <summary>3. Captions</summary>
-      <div class="row">
-        <button id="autocap" class="btn">Auto captions (on this device)</button>
-      </div>
-      <p id="capstatus" class="small"></p>
-      <div class="row">
-        <button id="addcap" class="btn">Add at playhead</button>
-      </div>
-      <div id="caplist" class="caplist"></div>
-      <label class="fld">Paste a script to spread captions over the clip
+      <summary>Captions</summary>
+      <label class="fld">Style
+        <select id="capstyle"></select>
+      </label>
+      <p id="capdemo" class="small"></p>
+      <div class="row"><button id="autocap" class="btn">Auto captions (on this device)</button><button id="addcap" class="btn">Add at playhead</button></div>
+      <p id="capstatus" class="small" role="status" aria-live="polite"></p>
+      <label class="fld">Or paste a script to spread captions over the clip
         <textarea id="script" rows="3" placeholder="Paste what you say. We split it into short lines."></textarea>
       </label>
       <button id="usescript" class="btn">Split script into captions</button>
     </details>
 
-    <details open>
-      <summary>4. Look</summary>
+    <details>
+      <summary>Pages and headline</summary>
       <label class="fld">Headline (top of the reel)<input id="headline" placeholder="Optional"></label>
-      <label class="fld">Caption size <input id="capsize" type="range" min="36" max="80" value="56"></label>
-      <label class="fld">Highlight colour <input id="hi" type="color" value="#F2A93A"></label>
-      <label class="chk"><input id="punch" type="checkbox" checked> Punch-in zoom on every other caption</label>
+      <p class="small">A page is a plain slide with your picture shrunk to a rounded window at the bottom.</p>
+      <div class="row">
+        <button id="addpage-quote" class="btn">Add quote page</button>
+        <button id="addpage-counter" class="btn">Add number page</button>
+      </div>
+      <div id="pagelist" class="small"></div>
+    </details>
+
+    <details>
+      <summary>Find shorts</summary>
+      <p class="small">Finds the best 20 to 60 second stretches of a long recording.</p>
+      <button id="shorts" class="btn">Find the best shorts</button>
+      <div id="shortlist"></div>
+    </details>
+
+    <details>
+      <summary>AI helper (optional)</summary>
+      <p class="small">Everything above works without it. If you want smarter hook and page titles, paste your own free key. It stays in this browser, goes only to the provider you choose, and there is no shared key.</p>
+      <label class="fld">Provider <select id="ai-provider"></select></label>
+      <label class="fld">Your key <input id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your free key"></label>
+      <label class="chk"><input id="ai-remember" type="checkbox"> Remember it on this device</label>
+      <div class="row"><button id="ai-run" class="btn">Improve hook and page titles</button><button id="ai-forget" class="btn">Forget key</button></div>
+      <p id="ai-info" class="small" role="status" aria-live="polite"></p>
     </details>
 
     <details open>
-      <summary>5. Export</summary>
+      <summary>Export</summary>
       <label class="fld">Size
         <select id="size"><option value="1080">1080 x 1920 (best)</option><option value="720">720 x 1280 (faster)</option></select>
       </label>
       <label class="chk"><input id="loud" type="checkbox" checked> Even out the volume (-14 LUFS, like Instagram and TikTok)</label>
-      <button id="export" class="btn primary">Export MP4</button>
+      <div class="row"><button id="export" class="btn primary">Export MP4</button><button id="cancelexp" class="btn" hidden>Cancel</button></div>
       <div id="prog" class="prog" hidden><i></i></div>
       <p id="expstatus" class="small" role="status" aria-live="polite"></p>
       <a id="dl" class="btn" hidden>Download</a>
+      <video id="result" class="result" controls playsinline hidden></video>
     </details>
-    <p class="small">Nothing is uploaded. Editing and export run in this tab.</p>
+    <p class="small">Nothing is uploaded. Editing and export run in this tab. <button id="newproj" class="linkbtn">Start a new project</button></p>
   </aside>
 </main>
 
+<script src="model.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
