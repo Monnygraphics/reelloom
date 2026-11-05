@@ -32,3 +32,12 @@ export async function deleteProject(id) {
   mk.onsuccess = () => { const c = mk.result; if (c) { if (String(c.key).startsWith(id + "/")) tx.objectStore("media").delete(c.key); c.continue(); } };
   await done(tx); d.close();
 }
+
+// Every saved project, newest first (without the video files), for the Project Library.
+export async function allProjects() {
+  const d = await open(), all = await get(d.transaction("projects").objectStore("projects").getAll()); d.close();
+  return all.map((r) => ({ id: r.id, name: r.name, updated: r.updated, dur: r.project ? (globalThis.SAModel ? globalThis.SAModel.duration(r.project) : 0) : 0 })).sort((a, b) => b.updated - a.updated);
+}
+export async function getProject(id) {
+  const d = await open(), r = await get(d.transaction("projects").objectStore("projects").get(id)); d.close(); return r || null;
+}

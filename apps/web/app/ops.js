@@ -20,7 +20,7 @@ export function makeHistory(limit = 100) {
 // words from the speech model ({t,s,e}) or from the project ({w,s,e}) -> the project's shape
 export const toModelWords = (ws) => ws.map((w) => ({ w: w.w != null ? w.w : w.t, s: w.s, e: w.e }));
 
-export function newReel() { const P = M().newProject("9:16", 30); P.pages = []; P.capStyle = "apollo"; return P; }
+export function newReel(preset = "9:16") { const P = M().newProject(preset, 30); P.pages = []; P.capStyle = "apollo"; return P; }
 
 // ---- media and the main timeline ----
 export function addVideo(P, info) {

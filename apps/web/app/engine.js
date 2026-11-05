@@ -154,7 +154,7 @@ export function drawProject(g, P, t, W, H, env) {
     g.drawImage(f.img, px + dx, py, w * s, h * s);
     g.filter = "none"; g.globalAlpha = 1;
   }
-  const pg = pageAt(P, t);
+  const pg = PW === 1080 && PH === 1920 ? pageAt(P, t) : null;   // pages and the picture window are designed for 9:16
   if (pg) {
     if (!snapCv) snapCv = document.createElement("canvas");
     snapCv.width = g.canvas.width; snapCv.height = g.canvas.height;

@@ -5,7 +5,7 @@
 // Clip: { id, kind:'video'|'image'|'audio'|'text', mediaId, start, dur, in, volume, fit, text, size, color, x, y, bg }
 (function (root) {
   const MIN = 0.1, EPS = 1e-6;
-  const PRESETS = { "9:16": { w: 1080, h: 1920 }, "16:9": { w: 1920, h: 1080 }, "1:1": { w: 1080, h: 1080 } };
+  const PRESETS = { "9:16": { w: 1080, h: 1920 }, "16:9": { w: 1920, h: 1080 }, "1:1": { w: 1080, h: 1080 }, "4:5": { w: 1080, h: 1350 } };
   let n = 0;
   const uid = p => p + Date.now().toString(36) + (n++).toString(36);
   const round = x => Math.round(x * 1000) / 1000;
@@ -104,8 +104,8 @@
   }
   // ---- effects, styles, captions, auto edit ----
   const TRANSITIONS = ["fade", "slideleft", "slideright"];
-  // Caption modes. Caption fields: pill dark|light|none, pillA, hi (active word colour),
-  // hiMode color|pill, shadow, outline, words (per caption), size/y in a 1080 wide frame. No mode applies a colour grade.
+  // Modes follow the Apollo / Athena / Hermes / Ares / Hestia reference styles. Caption fields: pill dark|light|none, pillA, hi (active word colour),
+  // hiMode color|pill, shadow, outline, words (per caption), size/y in a 1080 wide frame. Colour is the creator's own grade, so no mode applies one.
   const STYLES = {
     apollo:  { label: "Apollo I (signature)", zoom: true,  grade: null, caption: { fonts: [["Montserrat", 700], ["Arial", 700]], size: 52, y: 0.775, color: "#ffffff", upper: false, pill: "dark", pillA: 0.46, chars: 22, hi: "#F2A93A", hiMode: "color", words: 3, shadow: false, outline: false } },
     athena:  { label: "Athena (explainer glass)", zoom: false, grade: null, caption: { fonts: [["Montserrat", 700], ["Arial", 700]], size: 52, y: 0.775, color: "#ffffff", upper: false, pill: "dark", pillA: 0.46, chars: 22, hi: "#4DE8C4", hiMode: "color", words: 3, shadow: false, outline: false } },
@@ -124,7 +124,7 @@
     const total = sz => words.reduce((a, w) => a + measure(w.w, sz), 0) + (hasPill ? 0.2 * sz : measure(" ", sz)) * Math.max(0, words.length - 1);
     let fullW = total(size); const maxW = W * 0.82 - (hasPill ? 60 * k : 0);
     if (fullW > maxW) { size *= maxW / fullW; fullW = total(size); }
-    const space = hasPill ? 0.2 * size : measure(" ", size), cx = (c.x == null ? 0.5 : c.x) * W, ph = 1.2 * size + 30 * k, padX = 30 * k;   // glass pill: padding 14/30/16, words 0.2em apart
+    const space = hasPill ? 0.2 * size : measure(" ", size), cx = (c.x == null ? 0.5 : c.x) * W, ph = 1.2 * size + 30 * k, padX = 30 * k;   // glass pill: padding 14/30/16, words 0.2em apart (overlay engine page)
     const cy = (c.y == null ? 0.775 : c.y) * canvas.h + (hasPill ? ph : 1.2 * size) / 2, left = cx - fullW / 2; let x = left;   // y is the top edge of the caption block
     const ws = words.map(w => { const width = measure(w.w, size), o = { w: w.w, s: w.s, e: w.e, x, width }; x += width + space; return o; });
     return { size, k, cx, cy, base: cy + size * 0.35, left, fullW, words: ws, pill: hasPill ? { x: left - padX, y: cy - ph / 2, w: fullW + 2 * padX, h: ph, r: ph / 2 } : null,
@@ -182,7 +182,7 @@
   // AI mode: cut dead air out of a clip using the transcript, punch in on alternate lines, caption the result, apply the look.
   function autoEdit(p, id, words, opts = {}) {
     const f = find(p, id); if (!f || f.clip.kind !== "video") return null;
-    const { gap = 0.55, pad = 0.12, style = "apollo", minSeg = 0.3 } = opts, c = f.clip, lo = c.in, hi = c.in + c.dur, st = STYLES[style] || STYLES.apollo;
+    const { gap = 0.55, pad = 0.12, style = "apollo", minSeg = 0.3 } = opts, c = f.clip, lo = c.in, hi = c.in + c.dur, st = STYLES[style] || STYLES.apollo;   // st.grade is null for every mode: colour stays the creator's
     const ws = words.filter(w => w.e > lo && w.s < hi).map(w => ({ w: w.w, s: Math.max(w.s, lo), e: Math.min(w.e, hi), drop: !!w.drop }));
     if (!ws.some(w => !w.drop)) return null;
     let segs = [], cur = null;   // words flagged drop (fillers, retakes) are cut out and always split the clip there
@@ -211,7 +211,7 @@
     const captions = opts.noCaptions ? [] : addCaptions(p, capWords, style, { has: opts.has });   // noCaptions: the original engine draws them
     return { clips, captions, words: capWords, cuts, removed: round(c.dur - (cursor - c.start)) };
   }
-  // ---- hook headline ----
+  // ---- original engine (the optional overlay engine): captions, hook headline ----
   // All words on the timeline, as the overlay engine wants them ({w,s,e,i,emph}); wordsOf(mediaId) gives source-time words.
   function timelineWords(p, wordsOf) {
     const out = [];
@@ -333,7 +333,7 @@
     const tone = energy < 0.3 ? "calm" : energy < 0.55 ? "neutral" : "fun";
     return { seconds: Math.round(seconds * 10) / 10, wps: Math.round(wps * 100) / 100, energy: Math.round(energy * 100) / 100, tone, category, categories: Object.fromEntries(ranked.slice(0, 3)), topics, numbers, sentences: sents.length, moods: MOODS[category] || MOODS.story };
   }
-  // How busy to make it. Calibrated on finished reels (about 8 cards, 2-4 punch-ins, 3-16 cuts in 80 s); fun videos get more of everything.
+  // How busy to make it. Calibrated on 16 finished Apollo reels (about 8 cards, 2-4 punch-ins, 3-16 cuts in 80 s); fun videos get more of everything.
   function directorFor(profile) {
     const calm = { gap: 0.8, splitEvery: 0, punchEvery: 22, cardEvery: 8.8, brollEvery: 30, whoosh: 1, slide: 1, bubbles: false };
     const neutral = { gap: 0.6, splitEvery: 0, punchEvery: 15, cardEvery: 8, brollEvery: 16, whoosh: 1, slide: 1, bubbles: false };
